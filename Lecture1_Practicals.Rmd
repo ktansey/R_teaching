@@ -1,0 +1,525 @@
+---
+title: "Medic Masters - Intro R"
+author: "Katherine Tansey"
+date: "7/3/2017"
+output:
+  html_document:
+    depth: 4
+    keep_md: yes
+    theme: united
+    toc: yes
+    toc_float: yes
+  pdf_document:
+    toc: yes
+  word_document:
+    toc: yes
+---
+
+# Learning Objectives
+
+* Get familiar and comfortable with RStudio and Rmarkdown  
+* Understand the basic syntax of R  
+* Know the different data types and structures used by R  
+* Learn where to find help   
+
+# Introduction to Basics
+
+## Do math
+Very basic use of R is getting R to perform mathmatical operations. 
+```{r}
+2 + 2
+```
+
+```{r}
+5 - 3 + 2 * 4^2
+```
+
+```{r}
+11465 * 2358971436
+```
+
+```{r}
+options(scipen = 999)
+11465 * 2358971436
+```
+What is the difference between these last two runs?    
+**What do you think *options(scipen = 999)* is doing?**      
+
+> Do some of your own mathmatical operations in R     
+
+```
+```
+
+
+## Prompt   
+
+Copy and paste the below into the Console.   
+```{r, eval = FALSE}
+5 - 3 + 2 * 4^
+```
+    
+    To get back to the input prompt (>) for R, hit ESC     
+
+## Comments
+```{r}
+# comments start with a hash just like UNIX
+# these are not evaluated in R
+# calculate rate of change
+45/100
+```
+
+Commands can come after the command on the same line as well. 
+```{r}
+x <- 43 # a number
+y <- "hello" # a word/character
+```
+
+## Assigning values to variables
+
+Variables are extremely handy. Store a value or an object as a single word.   
+```{r}
+x <- 43 # a number
+y <- "hello" # a word/character
+```
+Variable names **can not** contain spaces or special characters. They also can't start with a number.   
+
+    <- used to assign values to variables
+
+> Assign values to variables   
+
+Create a list of different animals (barnyard and household animals) each with a different value. Create at least 7 variables. 
+```{r, eval = FALSE}
+dogs <- 
+cats <-
+horses <- 
+cows <- 
+```
+
+```{r, results = "hide", echo = FALSE}
+horses <- 9
+cows <- 32
+chickens <- 19
+sheep <- 24
+dogs <- 2
+cats <- 6
+goldfish <- 4
+```
+
+## Variables can be used like values
+Can use the variables instead of values to perform mathmatical operations. R will replace the variable name with the value it represents. 
+
+*Change these below to match the variable names you create above*
+```{r}
+farmyard <- horses + cows + chickens + sheep
+farmyard
+```
+
+```{r}
+household <- dogs + cats + goldfish
+household
+```
+
+```{r}
+farmyard/household
+```
+
+> Perform other mathmatical operations with variables created
+
+```
+```
+
+## Displaying values of variables
+
+There are two ways to do this:
+
+1. Type the variable name in R
+```{r}
+dogs
+```
+
+2. Use **print()** function
+```{r}
+print(dogs)
+```
+
+> Print values to console  
+
+```
+```
+
+> Test out tab completion on already created variables
+
+```
+```
+
+### Data Types
+Not all data are the same. R treats data differently depending on what type of data it is. To determine what type of data something is you can use the **class()** function. Variable inherit their class from the value or object assigned to that variable. 
+
+```{r}
+class(x)
+class(y)
+```
+
+# Project Management
+
+> Create a project for the Medic Masters R learning
+
+```
+```
+
+# Using Markdown
+
+See [here](http://www.rstudio.com/wp-content/uploads/2015/03/rmarkdown-reference.pdf) for reference guide, and [here](http://rmarkdown.rstudio.com/lesson-15.html) for a cheat sheet. 
+
+> Examine Markdown HTML file and Rmd to compare
+
+```
+```
+
+> Altering a markdown file   
+
+Add a code chunks to this markdown file, using this template:    
+```
+farmyard/household
+```
+1. Code chunk and results are printed.   
+
+```
+```
+
+2. Code chunk is printed but the results are not.
+
+```
+```
+
+3. Code chunk is not printed but the results are.  
+
+```
+```
+
+4. R does not run the code chunk.  
+
+```
+```
+
+# Getting Help
+There are various ways to get help in R. Let's see how to get help for the mean fuction in R (**mean()**).
+
+1. Go to the help tab in RStudio in the bottom right quadrant, and type the function name into the search box
+2. Use **?**
+```{r}
+?mean
+```
+3. Use **??**
+```{r}
+??mean
+```
+4. Use **help()**
+```{r}
+help(mean)
+```
+
+Also google it. These are the results from googling [R mean help](https://www.google.co.uk/search?q=R+mean+help&oq=R+mean+help&aqs=chrome..69i57j0l4.1679j0j7&sourceid=chrome&ie=UTF-8) 
+
+# Data Structures
+There are a variety of different data structures in R. We are only going to cover three of them:
+1. Vector
+2. Data Frame
+3. Factor
+
+For more information on the rest of them, see [here](http://adv-r.had.co.nz/Data-structures.html), [here](http://www.statmethods.net/input/datatypes.html) and [here](https://rstudio-pubs-static.s3.amazonaws.com/90282_db0ce980e867436fa9f4c4f7695edf0f.html#chapter-5---data-structures)
+
+## Vector
+Vectors are collections of values all of the same type (meaning characters, numeric, logicals). 
+
+    c() used to combine values into a vector
+
+```{r}
+character_vector <- c("Harry Potter", "Ron Weasley", "Hermione Granger", "Neville Longbottom")
+numeric_vector <- c(1,2,3,4,5,6)
+logical_vector <- c(TRUE, FALSE, FALSE, TRUE)
+```
+
+Subsetting, or extracting, individual elements from a vector occurs by using square bracket notation **[ ]** and the number of the elements in the vector that you want. 
+
+*REMEMBER: R counts from 1*
+
+> Can you guess what these will return?  
+
+```{r, results = "hide"}
+character_vector[1]
+```
+
+```{r results = "hide"}
+character_vector[3]
+```
+
+```{r results = "hide"}
+character_vector[1:3]
+```
+
+```{r results = "hide"}
+character_vector[c(1,3)]
+```
+
+Mathmatical operations can also occur on vectors like they do on numbers and variables. Let's walk through the following code:
+
+Create two vectors. One for money earned in one week on each weekday. The second is money spent on each weekday in that week. 
+```{r}
+money_earned <- c(85, 14, 67, 33, 54)
+money_spent <- c(62, 42, 36, 75, 94)
+```
+
+Caluclate the total (net amount) of money for each weekday
+```{r}
+money_total <- money_earned - money_spent
+money_total
+```
+
+Find which days in which we earned money (made more money than we spent). Returns a logical, where TRUE is when money_total is greater than 0 and FALSE when it is not.  
+```{r}
+made_money <- money_total > 0
+made_money
+```
+
+Extract out just the total money for the days that we earned money.
+```{r}
+good_days <- money_total[made_money]
+good_days
+```
+
+Another possible way to do this, can you see what is occuring here?
+```{r}
+good_days2 <- money_total[made_money > 0]
+good_days2
+```
+
+> Play with vectors
+
+Merge two vectors together.
+```{r}
+HP <- c("Harry Potter", "Ron Weasley", "Hermione Granger")
+HG <- c("Katniss Everdeen", "Peeta Mellark", "Gale Hawthorne")
+
+Book_PPL <- c(HP, HG)
+```
+
+
+## Factor
+Factors store categorical data. Use the fuction **factor()** to convert a vector in a factor. 
+
+```{r}
+sex_vector <- c("Male", "Female", "Female", "Male", "Male")
+factor_sex_vector <- factor(sex_vector)
+factor_sex_vector
+summary(factor_sex_vector)
+```
+**What is summary function doing?**      
+    
+Factors can be ordered. This aligns with ordinal data, which is categorical but has a set order to it.    
+
+```{r}
+age_vector <- c("35-50", "51-69", "35-50", "18-34", "51-69", "18-34", "35-50", "18-34", "51-69", "18-34","35-50", "35-50")
+factor_age_vector <- factor(age_vector, ordered=T, levels = c("Under 18", "18-34", "35-50", "51-69", "Over 70"))
+factor_age_vector
+summary(factor_age_vector)
+```
+
+> Create Factors
+
+```{r}
+movie_ratings <- c("bad", "okay", "okay", "good", "amazing", "horrible", "bad", "amazing")
+```
+1. Convert movie_ratings to non-ordered factor vector and print to screen factor_movie_ratings
+```
+
+```
+2. Convert movie_ratings to ordered factor vector and print to screen factor_movie_ratings
+```
+
+```
+Which one do you think is more informative?
+
+## Data Frame
+Two dimensional object that include both rows and columns. Columns are variables and rows are the observations. Each column can have a different data type. 
+
+    data.frame() used to create a data frame
+
+Use a data set that is in data.frame format which is preloaded into R called "iris". For more information about this dataset, see [here](https://stat.ethz.ch/R-manual/R-devel/library/datasets/html/iris.html).
+
+Print the entire dataset to screen
+```{r}
+iris
+```
+Print the first 6 rows. Command the same as in UNIX, just syntax slightly different (meaing UNIX does not use () around commands).
+```{r}
+head(iris)
+```
+Print the last 6 rows. Command the same as in UNIX, just syntax slightly different.
+```{r}
+tail(iris)
+```
+**How do you alter how many lines get printed with head() or tail()?**
+
+    str() prints nice summary of the data.frame including data type of each column   
+    
+```{r}
+str(iris)
+```
+
+*REMEMBER: R counts from 1*
+
+### Retrive elements from a data.frame
+> Can you guess what these will return?   
+
+```{r, results = "hide"}
+iris[,2]
+```
+
+```{r, results = "hide"}
+iris[4,]
+```
+
+```{r, results = "hide"}
+iris[,"Species"]
+```
+
+```{r, results = "hide"}
+iris[1:2,2]
+```
+
+```{r, results = "hide"}
+iris[2:5,1:2]
+```
+
+```{r, results = "hide"}
+iris[c(1,4,7), c(1,3)]
+```
+
+```{r, results = "hide"}
+iris[which(iris$Sepal.Length > 7.5), ]
+```
+**What do you think the which() command is doing?**    
+
+### Datafame size
+
+    nrow() to find out the number of rows in the dataframe
+
+```{r}
+nrow(iris)
+```
+
+    dim() returns the number of rows and columns 
+
+```{r}
+dim(iris)
+```
+
+    colnames() returns the column names of the dataframe 
+
+```{r}
+colnames(iris)
+```
+
+
+# Utilities
+There is no need to rewrite a function that already exists in R, either in base R or in the vast amount of packages available for R. Built-in functions, those included with base R, are faster than re-writing them because they are actually written in C. Most of these built-in functions are related to stats, see [here](http://www.statmethods.net/management/functions.html) for more information. 
+
+Get the sum for a column in a dataframe
+```{r}
+sum(iris[,"Sepal.Length"])
+```
+
+Get the average (mean) for a column in a dataframe
+```{r}
+mean(iris[,"Sepal.Length"])
+```
+
+Get the smallest value for a column in a dataframe
+```{r}
+min(iris[,"Sepal.Length"])
+```
+
+Get the largest value for a column in a dataframe
+```{r}
+max(iris[,"Sepal.Length"])
+```
+
+> Play with built in functions    
+
+1. Get the standard deviation for Sepal.Width  
+
+```
+```
+
+```{r, echo=FALSE, results="hide"}
+sd(iris[,"Sepal.Width"])
+```
+
+2. Get the median for Petal.Width  
+
+```
+```
+
+```{r, echo=FALSE, results="hide"}
+median(iris[,"Petal.Width"])
+```
+
+3. Create a new variable called "number_list" that goes from 1 to 100 including odds using seq()   
+
+```
+```
+
+```{r, echo=FALSE, results="hide"}
+number_list <- seq(1, 100, 2)
+```
+
+4. Create a normal distribution using rnorm with length of 100 and the same mean and sd as Sepal.Width  
+
+```
+```
+
+```{r, echo=FALSE, results="hide"}
+rnorm(100, m = mean(iris[,"Sepal.Width"]), sd = sd(iris[,"Sepal.Width"]))
+```
+
+# Wrapping Up
+
+* Use Rstudio 
+    + Markdown, project management, git !
+* Data Structures and Data Types
+    + Vectors and Dataframes
+* Getting help
+
+## Key Points
+* R has the usual arithmetic operators and mathematical functions  
+* <- assign values to variables  
+* Treat raw data as read-only  
+* Treat generated output as disposable  
+* Separate function definition and application   
+* Use R built-in functions – they are fast  
+
+Do not use spaces, quotes, special characters, or wildcard characters such as ‘*’ or ‘?’ in filenames, as it complicates variable expansion.
+
+Give files consistent names that make logical sense, reflect what the data is and that are easy to match with wildcard patterns to make it easy to select them for looping.
+
+
+## Self Directed Learning
+Data Structures: [Matrix](http://adv-r.had.co.nz/Data-structures.html#matrices-and-arrays), [List](http://r4ds.had.co.nz/lists.html)       
+
+Further Reading : Hadley Wickham’s Advanced R            
+
+* [Data structures](http://adv-r.had.co.nz/Data-structures.html)          
+* [Style](http://adv-r.had.co.nz/Style.html)              
+* [Subsetting](http://adv-r.had.co.nz/Subsetting.html)             
+
+## Cheat Sheets   
+[RStudio](https://www.rstudio.com/wp-content/uploads/2016/01/rstudio-IDE-cheatsheet.pdf)          
+[R Markdown](https://www.rstudio.com/wp-content/uploads/2016/03/rmarkdown-cheatsheet-2.0.pdf)           
+[R Markdown Reference Guide](https://www.rstudio.com/wp-content/uploads/2015/03/rmarkdown-reference.pdf)           
+[Data Import](https://github.com/rstudio/cheatsheets/raw/master/source/pdfs/data-import-cheatsheet.pdf)             
+
+## Citation
+[Software Carpentry](https://software-carpentry.org/lessons/)          
+
+

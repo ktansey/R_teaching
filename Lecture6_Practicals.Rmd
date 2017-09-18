@@ -1,0 +1,90 @@
+---
+title: "Lecture6_Practicals"
+author: "Katherine Tansey"
+date: "7/7/2017"
+output:
+  html_document:
+    depth: 4
+    keep_md: yes
+    theme: united
+    toc: yes
+    toc_float: yes
+  pdf_document:
+    toc: yes
+  word_document:
+    toc: yes
+---
+
+
+# Learning Objectives
+
+* Integrate regression lines into plots to show data trends        
+* Learn how to manipulate the scales of plots           
+* Understand how to modify all aspects of plot layout        
+* Comprehend quick plotting with qplot         
+* Know how to make plots interactive               
+
+# What we did last time
+
+
+# Statistics
+
+> Add smoothing lines to plots
+
+> Play with stat_summary
+
+# Coordinates
+
+> Alter axis
+
+# Themes
+
+> Alter themes
+
+> Use built in themes
+
+# qplot
+
+> Compare qplot to ggplot
+
+
+# Interactive plots
+
+> Make interactive plots
+
+
+# Putting it all together
+
+> Putting it all together
+
+# Manhattan plot
+
+> Putting it all together
+
+# Volcano plot
+
+> make volcano plot
+
+> make interactive
+
+
+# Wrapping up
+## Key points    
+
+* Easy to add regression lines to plots     
+* Every aspect of plots layout can be modified which is a LOT of things     
+* qplot can be used to make plots more quickly       
+* Interactive plots can enhance a viewers experience          
+    + Easy-ish to make using plot.ly package          
+
+## Further Reading
+[ggplot2 reference page](http://ggplot2.tidyverse.org/reference/) 
+[Cookbook for R graphics](http://www.cookbook-r.com/Graphs/)  
+[plot.ly](https://plot.ly/ggplot2/)  
+
+## Next time
+[Making Apps with R](https://shiny.rstudio.com/gallery/) in [Shiny](https://shiny.rstudio.com/)
+
+
+
+

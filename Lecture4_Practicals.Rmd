@@ -1,0 +1,780 @@
+---
+title: "Lecture4_Practicals"
+author: "Katherine Tansey"
+date: "7/5/2017"
+output:
+  html_document:
+    depth: 4
+    keep_md: yes
+    theme: united
+    toc: yes
+    toc_float: yes
+  pdf_document:
+    toc: yes
+  word_document:
+    toc: yes
+---
+
+# Learning Objectives
+
+* Understand the syntax of writing a function including arguments and returning      
+* Learn scoping in the context of R     
+* Know how to integrate functions with the apply family     
+* Learn to incorporate error messages    
+
+# What we did last time
+**A LOT!!!**
+
+Learned about the concept of tidy data and how to create it. Various ways too "look" at our data
+
+```{r, eval = FALSE}
+class(data)
+dim(data)
+colnames(data)
+str(data)
+glimpse(data) 
+summary(data) 
+head(data)
+tail(data)
+```
+
+How to reshape data, going both from wide to long:
+```{r, eval = FALSE, echo=FALSE, results="hide"}
+data_wide <- spread(data, TIME, Value)
+```
+
+And long to wide:
+```{r, eval = FALSE, echo=FALSE, results="hide"}
+data_long <- gather(data_wide, "Year", "Hours", 7:73, na.rm = TRUE)
+```
+
+How to manipulate separate one column into two:  
+```{r, eval = FALSE}
+separate(dataset1, col = chr_pos_(b36), into = c("CHR", "BP"), sep = ":")
+```
+Or merge multiple columns into one:
+```{r, eval = FALSE}
+unite(dataset1, ID, CHR, BP, A1, A2, sep = ":")
+```
+And how to alter the contains of character strings within a column:
+```{r, eval = FALSE}
+dataset1$CHR <- str_replace(dataset1$CHR, "chr", "")
+```
+
+How to quantify missingness
+```{r, eval = FALSE}
+summary(data_wide)
+summary(complete.cases(data_wide))
+```
+And how to remove all observations with missing data from a dataset
+```{r, eval = FALSE}
+data_wide_nomissing <- data_wide[complete.cases(data_wide),]
+# or 
+data_wide_nomissing <- na.omit(data_wide)
+```
+That when using built in statistical functions to add the **na.rm=TRUE** option, otherwise if there are any missing values *NA* is returned.   
+```{r, eval = FALSE}
+mean(data_wide[,"1980"], na.rm = TRUE)
+```
+
+Various ways to join datasets together
+```{r, eval = FALSE}
+left_join(dataset1, dataset2, by = "key")
+right_join(dataset1, dataset2, by = c("key1", "key2"))
+inner_join(dataset1, dataset2, by = "key")
+full_join(dataset1, dataset2, by = "key")
+```
+How to perform filtering "joins", where data is not merged together but filter based on the contents of another dataset
+```{r, eval = FALSE}
+semi_join(dataset1, dataset2, by="key")
+anti_join(dataset1, dataset2, by="key")
+```
+To use set operations for datasets that have the exact same columns.
+```{r, eval = FALSE}
+union(dataset1, dataset2)
+
+intersect(dataset1, dataset2)
+
+setdiff(dataset1, dataset2)
+
+setequal(dataset1, dataset2)
+```
+And binds for two datasets contain the **exact same columns** in the **exact same order**   
+```{r, eval = FALSE}
+# rows
+bind_rows(dataset1, dataset2)
+# columns
+bind_cols(dataset1, dataset2)
+```
+But talked about how these can be dangerous as they do *NOTHING to match* and so *assumes there is a matching order*, which may be a big assumption!!!!    
+
+Then we delved into dplyr, talking about the six main verbs.
+1. select  -- to select columns to keep or remove 
+```{r, eval = FALSE}
+select(gapminder, country, year, lifeExp)
+
+# vectorized
+select(gapminder, country:year)
+
+# to not select a column
+select(gapminder, -country)
+```
+
+2. filter -- to select rows to keep or remove based on some criteria 
+```{r, eval = FALSE}
+# single filter
+filter(gapminder, year == 1997)
+
+# multiple filters
+filter(gapminder, year == 1997 & gdpPercap > 1000)
+filter(gapminder, year == 1997 | year == 1967)
+```
+
+3. arrange -- to sort columns in ascending or descending order
+```{r, eval = FALSE}
+# single parameter ascending arrange
+arrange(gapminder, lifeExp)
+
+# single parameter descending arrange
+arrange(gapminder, desc(lifeExp))
+
+# multiple parameter arrange
+arrange(gapminder, desc(lifeExp), pop)
+```
+
+4. group_by -- group together observations based on information within the data
+```{r, eval = FALSE}
+# single variables
+group_by(gapminder, continent)
+
+# multiple variables
+group_by(gapminder, country, continent)
+```
+
+5. summarise -- to create summary statistics
+```{r, eval = FALSE}
+summarise(gapminder, mean_lifexp = mean(lifeExp, na.rm=TRUE))
+
+summarise(gapminder, mean_lifexp = mean(lifeExp, na.rm=TRUE), mean_gdp = mean(gdpPercap, na.rm=TRUE))
+```
+
+6. mutate -- to create new variables using existing variables
+```{r, eval = FALSE}
+# single variables
+mutate(gapminder, gdp_billion=gdpPercap*pop/10^9)
+
+#  multiple variables
+mutate(dataset1, rate = NUM1/100, norm = Value2 - 50)
+```
+
+And to put them all together using the pipe operator.
+```{r, eval = FALSE}
+gapminder %>%
+    group_by(country) %>%
+    summarise(mean_LE = mean(lifeExp, na.rm=TRUE))
+```
+
+# What is a function?           
+
+Have used a LOT of functions already, like built in functions:               
+```{r, eval = FALSE}
+mean()
+sd()
+read.table()
+```          
+
+And those from packages we loaded, like:                
+```{r, eval = FALSE}
+separate()
+gather()
+```
+
+R is open source, which means the code behind all functions is available to review. However, some functions (like mean, sd, and dplyr) written in C or C++ to increase speed, which are not as easy to understand/interpret
+
+To examine what a function is doing, just type the name of the funciton without the parentheses and the code will print to the screen. You can also google to find it.  
+
+> Examine functions
+
+```{r}
+read.table
+```
+
+Compare this to the output of those functions I said were written in C/C++
+```{r}
+mean
+```
+Or:    
+```{r, message=FALSE}
+library(dplyr)
+```
+```{r}
+arrange
+``` 
+
+Let's look at another function. Within the **pwr** package in R, let's examine the code to calculate power for a t-test.    
+```{r, message=FALSE}
+library(pwr)
+```
+```{r}
+pwr.t.test 
+```
+
+Functions are incredibly useful if you are doing the same thing over and over and over again. Copying and pasting can go wrong, it is better to make a function to perform the repetitive task for you. 
+
+## Functions can be treated like other R objects     
+
+* Assign functions to variables      
+* Store functions in lists       
+* Pass functions as arguments to other functions        
+* Create functions inside functions         
+* Return functions as the result of a function          
+
+# How to write a function
+There are 3 main components to creating a function. 
+
+1. Function name
+    + What you are going to call your function
+    + Logical, relevant, descriptive 
+    + Do **NOT** name your function after a base utility in R
+2. Inputs or arguments
+    + Data the function is going to manipulate
+    + Options for the function
+3. Code body
+    + Code developed that performs a function
+
+![](/Users/katherine/Documents/Courses_and_Workshops/Medic_Masters/Compute_Module_2017/R/Pictures/function.png)
+
+> Examine pwr.t.test
+
+```{r, message=FALSE}
+library(pwr)
+```
+```{r}
+pwr.t.test 
+```
+
+## Starting example
+
+```{r}
+# Create a dummy dataset of 1000 observations of 10 variables
+data1 <- data.frame(replicate(10,sample(0:100,1000,rep=TRUE)))
+summary(data1)
+```
+This code below will work but has errors in it
+```{r, eval = FALSE}
+# recode the variables to create standardized values (z-scores)
+data1$var1 <- (data1$var1 - mean(data1$var1)) / sd(data1$var1)
+data1$var2 <- (data1$var2 - mean(data1$var2)) / sd(data1$var2)
+data1$var3 <- (data1$var3 - mean(data1$var3)) / sd(data1$var3)
+data1$var4 <- (data1$var4 - mean(data1$var3)) / sd(data1$var4)
+data1$var5 <- (data1$var5 - mean(data1$var5)) / sd(data1$var5)
+data1$var6 <- (data1$var6 - mean(data1$var6)) / sd(data1$var6)
+data1$var7 <- (data1$var7 - mean(data1$var7)) / sd(data1$var7)
+data1$var8 <- (data1$var8 - mean(data1$var7)) / sd(data1$var8)
+data1$var9 <- (data1$var9 - mean(data1$var8)) / sd(data1$var9)
+data1$var10 <- (data1$var10 - mean(data1$var10)) / sd(data1$var10)
+```
+All of those lines of code can be replaced with:
+```{r}
+z_score <- function(x) {
+    zscore <- (x - mean(x)) / sd(x)
+    zscore
+}
+data1[] <- lapply(data1, z_score)
+```
+**What is the lapply function doing here?**
+
+> Lets make some functions
+
+Create a function that calculates BMI.  BMI metric values, meaning weight is in kilograms and height is in meters. 
+
+```
+```
+
+```{r, eval = FALSE, echo = FALSE}
+bmi_calc <- function(weight, height) {
+    weight /  (height^2)
+}
+
+bmi_calc(70, 1.8)
+```
+Look [here](http://www.diabetes.co.uk/bmi.html) to see BMI classifications (i.e. normal, overweight, obese, etc)
+
+
+# Arguments 
+
+Two ways to refer to arguments when calling functions. 
+```{r}
+# generic function
+add_numbers <- function(x, y) {
+	result <- x + y
+	result
+}
+```
+1. Rely on positions for matching
+    + If not in correct order, arguments will be mis-assigned!
+```{r}
+add_numbers(2, 6)
+```
+2.  Matching on name 
+    + Position not longer matters
+```{r}
+add_numbers(y = 2, x = 6)
+```
+
+> Different ways to call arguments
+
+Using your previously made BMI function, refer to the arguments in the function using the two different methods.
+
+```
+```
+
+```{r, eval = FALSE, echo = FALSE}
+bmi_calc <- function(weight, height) {
+    weight /  (height^2)
+}
+
+bmi_calc(70, 1.8)
+bmi_calc(weight = 70, height = 1.8)
+```
+
+Argument names should be logical, relevant and descriptive. R does not care what you name it (outside of R's usual requirements like **can not** contain spaces or special characters or start with a number).
+
+Some commonly used names that have meaning:    
+
+* x, y, z: vectors      
+* w: a vector of weights       
+* df: a data frame       
+* i, j: numeric indices   (typically i is rows and j is columns)         
+* n: length, or number of rows       
+* p: number of columns       
+
+
+## Default arguments 
+
+Arguments can have a default value. This means for something like read.table, which has a lot of arguments, not every argument needs to be set in order for the function to run without error as they have default values. 
+
+Defaults are very useful:    
+
+* Assume a common occurrence          
+* Means with large number of arguments NOT ALL have to be specified            
+* Reduces typing and ERRORs            
+
+```{r, eval = FALSE}
+read.table(file, header = FALSE, sep = "", quote = "\"'", dec = ".", …)
+```
+We have worked with defaults before, when importing data into R. We had to change the header and sep commands in order to get data to read in correctly.      
+
+For example in read.table, you do not specify a value for the argument header, the default value (FALSE meaning there is no header) is used. However, if you do have a header row, than the default needs to be over written by added the *header = TRUE* argument into the call of the function.       
+
+Let's re-examine our z-score function from before:
+```{r}
+z_score <- function(x) {
+	zscore <- (x - mean(x)) / sd(x)
+	zscore 
+}
+```
+**Is there an obvious default we could add here to make this function more robust?**       
+
+```{r}
+z_score <- function(x,missing=TRUE) {
+	zscore <- (x - mean(x, na.rm=missing)) / sd(x, na.rm=missing)
+	zscore 
+}
+```
+By adding missing = TRUE as a default, we can make this function more robust to the effects of missing data in datasets. This way z-scores are still calculated even if these is missing data (remember that even having 1 NA value in a column means that these functions will return NA and not the mean or sd).    
+
+Test this out using this dataset which includes missing data.
+```{r}
+df <- data.frame(A = 1:10, B = 11:20, c = 21:30)
+df <- as.data.frame(lapply(df, function(cc) cc[ sample(c(TRUE, NA), 
+                                                       prob = c(0.85, 0.15), 
+                                                       size = length(cc), 
+                                                       replace = TRUE) ]))
+z_score <- function(x,missing=TRUE) {
+    zscore <- (x - mean(x, na.rm=missing)) / sd(x, na.rm=missing)
+}
+df1 <- apply(df, 2, z_score)
+```
+
+> Work with setting defaults
+
+What is a potential default that could be added to the BMI calculator to improve it? Think about how we calculate BMI, that the values *MUST* be in metric format?
+
+
+```
+```
+
+```{r, eval = FALSE, echo = FALSE}
+bmi_calc <- function(weight, height, values = "metric") { 
+    if(values != "metric"){
+        print("bad values")
+    } else {
+        weight /  (height^2)
+    }
+}
+
+bmi_calc(70, 1.8, values = "metric")
+bmi_calc(weight = 70, height = 1.8, values = "metric")
+
+bmi_calc(weight = 155, height = 5.5, values = "imperial")
+```
+
+## Ellipsis
+Increase flexiblity in function inputs as you do not have to list all the inputs for built in commands. The ellipsis allows for inputs to get "passed down", thefore you don’t have to write explictly for every single input if using default commands.
+
+```{r}
+make_histogram <- function(data, color, ...) { 
+	hist(data, col=color, ...)
+}
+make_histogram(data1[,1], "red", breaks=10, border = "green")
+```
+
+> Practice ellipsis
+
+Look at the [hist](https://stat.ethz.ch/R-manual/R-devel/library/graphics/html/hist.html) function. Alter the command above to create more bars (bars with a smaller width), with blue bars, and altered the x-axis label to read "Distribution"
+
+```
+```
+
+```{r, echo=FALSE, eval=FALSE}
+make_histogram <- function(data, color, ...) { 
+	hist(data, col=color, ...)
+}
+make_histogram(data1[,1], "blue", breaks=100, border = "blue", xlab = "Distribution")
+```
+
+# Returning 
+Due to scoping (talked about below), variable defined in fucntion will not be returned without explicitly doing so.  All function will return the last line if that is not assigning a variable.             
+
+Use  **return()** to be explicit about what is returned.
+
+![](/Users/katherine/Documents/Courses_and_Workshops/Medic_Masters/Compute_Module_2017/R/Pictures/returns.png)
+
+```{r}
+add_numbers <- function(x, y) {
+	result <- x + y
+}
+add_numbers(2,6)
+```
+
+```{r}
+add_numbers <- function(x, y) {
+	x + y
+}
+add_numbers(2,6)
+```
+
+```{r}
+add_numbers <- function(x, y) {
+	result <- x + y
+	result
+}
+add_numbers(2,6)
+```
+
+```{r}
+add_numbers <- function(x, y) {
+	result <- x + y
+	return(result)
+}
+add_numbers(2,6)
+```
+
+**What will this return?**  
+```{r, eval = FALSE}
+add_numbers <- function(x, y) {
+	result <- x + y
+}
+test <- add_numbers(2,6)
+```
+
+> Returns 
+
+Alter the bmi function to explicitly return items. 
+
+```
+```
+
+```{r, eval = FALSE, echo = FALSE}
+bmi_calc <- function(weight, height, values = "metric") { 
+    if(values != "metric"){
+        return(print("bad values"))
+    } else {
+        BMI <- weight /  (height^2)
+        return(BMI)
+    }
+}
+
+bmi_calc(70, 1.8, values = "metric")
+```
+
+# Scoping
+Scoping refers to how R looks up values by name.       
+
+![](/Users/katherine/Documents/Courses_and_Workshops/Medic_Masters/Compute_Module_2017/R/Pictures/scoping.png) 
+
+A function is its own working environment with R. R first looks within the function for objects/information (if you are running a function). If it does not find what it is looking for within the function environment, R then looks one level up in the script environment. If it does not find it there, it looks in the R or Global environment which includes base R and all the R packages you have loaded for that session. Variables not returned not accessible outside the function, they are not listed in the Global environment as variables (in the upper right hand window in RStudio called environment).                      
+
+```{r, error=TRUE}
+y <- 400
+add_squared_numbers <- function(x) {
+    z <- x * x
+    a <- y * y
+    z + a
+}
+
+add_squared_numbers(6)
+print(c(z, a))
+```
+The call **print(z, a)** throws an error. This is because these variables only exist within the environment of the function and are not returned to the global/R environment. Therefore they do not exist to be printed outside of the function. 
+
+However, if we were to call print within the function, we are able to access the variables z and a, the print function no longer throws an error. 
+```{r, error=TRUE}
+y <- 400
+add_squared_numbers <- function(x) {
+    z <- x * x
+    a <- y * y
+    print(c(z, a))
+    z + a
+}
+
+add_squared_numbers(6)
+```
+
+> See how scoping works
+
+Alter the BMI calculator to take imperial measurements as well as metric. Imperial measurements will give height in inches and weight in pounds. Within the funciton convert the imperial measurements to metric to calculate BMI. 1 inches is 0.0254 meters, and 1 pound is 0.453592 kilograms.  You should be creating a conditional statement that does two different calculations, and you should be creating intermediate variable for the height/weight conversion.
+
+Attempt to acces height and weight outside of the function. 
+
+```
+```
+```{r, eval = FALSE, echo = FALSE}
+bmi_calc <- function(weight, height, values = "metric") { 
+    if(values == "metric"){
+        BMI <- weight /  (height^2)
+        return(BMI)
+    } else if(values == "imperial") {
+        m_height <- height * 0.0254
+        m_weight <- weight * 0.453592
+        BMI <-  m_weight /  (m_height^2)
+        return(BMI)
+    } else {
+        return(print("bad values"))
+    }
+}
+
+bmi_calc(70, 1.8, values = "metric")
+bmi_calc(154, 71, values = "imperial")
+```
+
+What happens if you call the bmi statement like this?
+```{r, error=TRUE}
+height = 88
+weight = 123
+bmi_calc( values = "metric")
+```
+**Why does the above throw an error but the below does not?**
+```{r, error=TRUE}
+y <- 400
+add_squared_numbers <- function(x) {
+    z <- x * x
+    a <- y * y
+    print(c(z, a))
+    z + a
+}
+
+add_squared_numbers(6)
+```
+
+Functions should **NEVER** depend on variables other than the arguments.        
+
+This is why the bmi_calc gives an error, because the arguments (height and weight) must be called with the function, however add_squared_numbers doesn't have y as an input argument, therefore R goes looking for it (first within the function and then in the wider environment).     
+
+# Revisiting the apply family
+
+Anonymous functions do not have names. They are written on one line with the function wrapped in parentheses. 
+```{r, eval = FALSE}
+(function(x) cody_body) (input)
+```
+```{r}
+(function(x,y) x + y)(2,6)
+```
+These are most useful when intergrated into the apply family of functions. Otherwise, if you find yourself in need of a function, I would suggest written a named function.   
+```{r}
+apply(mtcars, 2, function(x) length(unique(x)))
+```
+NOTE: that when using anonymous functions within the apply functions, they are not wrapped in parenthesis (), but they can be wrapped in parenthesis without throwing an error        
+```{r}
+apply(mtcars, 2, (function(x) length(unique(x))))
+```
+
+```{r}
+apply(iris[,1:4], 2, function(x) length(x[x>7]))
+
+apply(iris[,1:4], 2, function(x) mean(x[x>0]))
+```
+
+```{r}
+# Create a dummy dataset of 1000 observations of 10 variables
+data1 <- data.frame(replicate(10,sample(0:100,1000,rep=TRUE)))
+
+z_score <- function(x) {
+	zscore <- (x - mean(x)) / sd(x)
+	zscore
+}
+
+data2 <- apply(data1, 2, z_score)
+```
+
+> Integrate own functions into the apply family
+
+Use data from the US National Health Interview Survey (NHIS 2007 data.csv) in Lecture4_data. Load data into R and use the mapply function and your own bmi function to create a new column called bmi_new.
+
+```
+```
+
+```{r, echo = FALSE, eval = FALSE}
+hw_data <- read.csv("/Users/katherine/Documents/Courses_and_Workshops/Medic_Masters/Compute_Module_2017/R/Lecture4_data/NHIS 2007 data.csv")
+
+bmi_calc <- function(weight, height, values = "metric") { 
+    if(values == "metric"){
+        BMI <- weight /  (height^2)
+        return(BMI)
+    } else if(values == "imperial") {
+        m_height <- height * 0.0254
+        m_weight <- weight * 0.453592
+        BMI <-  m_weight /  (m_height^2)
+        return(BMI)
+    } else {
+        return(print("bad values"))
+    }
+}
+
+hw_data$bmi <- mapply(bmi_calc, hw_data$weight, hw_data$height, values = "imperial")
+```
+
+How do your results compare with those results in the file?       
+
+# Calling functions from other scripts
+Good project management suggests that you "Separate function definition and application", which means to pull out functions for code and save them in a central location. This can increase the reuse of functions and saves re-writing what you have already written!      
+
+
+> Used a called function
+
+In Lecture4_data there is an R script called "genome_power_analysis.R" that contains function for calculating power for a single variant genetic analysis assuming an additive model using a quantitative trait.  Open that script and get familiar with the syntax of the function.
+
+Call that function from this script. 
+
+Calculate power for a variant with MAF of 0.01 and an effect size of 1.01 in a sample of 1000 people with the alpha level of 0.00000005 (genome wide significance threshold)
+
+```
+```
+
+```{r, eval = FALSE, echo = FALSE}
+source("/Users/katherine/Documents/Courses_and_Workshops/Medic_Masters/Compute_Module_2017/R/Lecture4_data/genome_power_analysis.R")
+
+genome_power_analysis(0.01, 1000, 0.00000005, 1.01)
+```
+
+Calculate power for a variant with MAF of 0.05 and an effect size of 1.01 in a sample of 1000 people with the alpha level of 0.00000005 (genome wide significance threshold)
+
+```
+```
+
+```{r, eval = FALSE, echo = FALSE}
+source("/Users/katherine/Documents/Courses_and_Workshops/Medic_Masters/Compute_Module_2017/R/Lecture4_data/genome_power_analysis.R")
+
+genome_power_analysis(0.05, 1000, 0.00000005, 1.01)
+```
+
+
+# Getting fancier	
+Integrate in checks to ensure inputs are the correct type/format. Set pre-condition that inputs must meet before function runs. This allows the writer to write informative and meaningful errors messages to the user (this is really helpful!). *Better error messages enable the person using your code to know where they went wrong*, and how they can fix it!     
+ 
+Some examples
+
+**stop()** -> used with an if statement
+if checks a condition, and stop outputs the error message if condition meet
+```{r, error=TRUE}
+add_squared_numbers <- function(x,y) {
+    if (is.numeric(x) == FALSE | is.numeric(y) == FALSE) {
+        stop("'x' and 'y' must be numbers", call.=FALSE)
+    }
+    z <- x * x
+    a <- y * y
+    z + a
+}
+add_squared_numbers("dog" ,10)
+```
+
+**stopifnot()** -> checks every argument is true
+```{r, error=TRUE}
+add_squared_numbers <- function(x,y) {
+    stopifnot(is.numeric(x)  & is.numeric(y))
+    z <- x * x
+    a <- y * y
+    z + a
+}
+add_squared_numbers("6",10)
+```
+
+
+```{r, error=TRUE}
+add_squared_numbers <- function(x,y) {
+    stopifnot(is.numeric(x)  & is.numeric(y))
+    z <- x * x
+    a <- y * y
+    z + a
+}
+try(add_squared_numbers("6",10))
+```
+
+There are other types of warning messages that can be include like:
+
+* warning
+    + Difference warnings do not kill the function
+    + Function will run to completion and output result as well as the warning
+* assert_that 
+    + From *assertthat* package 
+    + Works like *stopifnot*
+    + Assert that x is a character, or a certain length, etc…
+
+# For practice:
+Update the BMI function to output the category someone is in (i.e. underweight, healthy weight, overweight, obese, etc.) given their BMI. 
+
+
+# Wrapping Up
+## Key Points
+* Write a function if you have copied and pasted more than twice!
+* Functions are like any other object in R
+* Functions should **NEVER** depend on variables other than the arguments
+    + Because of the effect of lexical scoping in R
+* Arguments can have defaults
+* Use **return()** to return information from faction 
+* Create highly reusable functions by pulling them out of code and saving them as separate files
+    + Use **source(/path_to_ function/function.R)** to call function from script 
+* Use checks to ensure good inputs
+
+## Good tips for function writing          
+
+* Not too long       
+* Do a single operation       
+
+* Function name are relevant, logical and descriptive           
+    + Same for arguments!          
+* Most used arguments (like data) are first         
+* Less used arguments are toward the end         
+    + Give them defaults!           
+* It is obvious what is being returned           
+
+## Further Reading 
+From Hadley Wickham’s Advanced R:
+
+* [Functions](http://adv-r.had.co.nz/Functions.html)          
+* [Functionals](http://adv-r.had.co.nz/Functionals.html)         
+* [Functional programming](http://adv-r.had.co.nz/Functional-programming.html)    
+* [Exception Debugging](http://adv-r.had.co.nz/Exceptions-Debugging.html)         
+
+
